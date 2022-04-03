@@ -4,14 +4,13 @@ from datetime import datetime
 from urllib import error
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
-
+import pandas as pd
 
 # Se crea una función para descargar una página
 # Se usó parte del código propuesto en el libro, pero con librerías de python 3
 
 
 def download(url, user_agent='wswp', num_retries=2):
-    print('downloading:', url)
     request = Request(url)
     request.add_header('User_agent', user_agent)
     try:
@@ -46,20 +45,23 @@ def scrap_sb(html):
 # AQUI FALTAN LAS FUNCIONES PARA LAS PAGINAS DE FARMACIAS AHUMADA Y CRUZ VERDE
 
 # Se crean funciones que permitan navegar y descargar las páginas a través del sitemap.
-# Utilizando las funciones anteriores, se rescata la información, se guarda en un dataframe y se exporta a un csv
+# Utilizando las funciones anteriores, se rescata la información Y se guarda en un dataframe
 
 # La siguiente es la función para la farmacia SalcoBrand
 
 
 def crawl_sitemap_sb(url, time_sleep=3):
-    # AQUI FALTA CREAR UN DATAFRAME CON LAS VARIABLES: FECHA, FARMACIA, PRODUCTO, SKU, PRECIO, OFERTA
+    df = pd.DataFrame(columns=['Farmacia', 'Producto', 'SKU', 'Normal', 'Oferta'])
     sitemap = download(url)
-    links = re.findall('<loc>(.*?)</loc>', sitemap)
-    for link in links:
+    soup = BeautifulSoup(sitemap, 'html.parser')
+    sitemap_pretty = soup.prettify()
+    links = re.findall('<loc>(.*?)</loc>', sitemap_pretty,re.DOTALL)
+    for enlace in links:
+        link = enlace[4:-2]
         html = download(link)
         info = scrap_sb(html)
-        # AQUÍ FALTA AGREGAR LA INFO AL DATAFRAME
+        df.loc[len(df)] = info
         time.sleep(time_sleep)
-    # AQUI FALTA DECLARAR COMO RETURN EL DATAFRAME QUE SE GENERARÁ
+    return df
 
 # AQUI FALTAN LAS FUNCIONES PARA LOS SITEMAPS DE LA FARMACIA AHUMADA Y CRUZVERDE
