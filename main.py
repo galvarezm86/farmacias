@@ -1,6 +1,8 @@
 import pandas as pd
-
 import functions
+import warnings
+
+warnings.filterwarnings("ignore")
 
 # Se obtiene la información de la página de SalcoBrand
 
@@ -38,3 +40,7 @@ sb = sb.append(sb12, ignore_index=True)
 sb.to_csv('SalcoBrand.csv', encoding='utf-8')
 
 # AQUÍ FALTA HACER LO MISMO PARA CRUZVERDE Y FARMACIAS AHUMADA
+
+sc1 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_0-product.xml')
+sc2 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_1-product.xml')
+sc3 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_2-product.xml')
