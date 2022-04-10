@@ -29,4 +29,6 @@ Carpeta Data: Carpeta con los archivos csv obtenidos tras el proceso de web scra
 Además de encontrarse en la carpeta Data, los 3 archivos descritos anteriormente se encuentran en un repositorio de Zenodo, cuyo DOI es: 
 
 
-Para la correcta ejecución del script1, es necesario contar con el navegador Firefox, además de tener el driver Geckodriver instalado en la carpeta "Bin" (linux) o "Scripts" (windows), las que se encuentran dentro del fichero "Venv" correspondiente al environment del proyecto. El driver puede descargarse desde https://github.com/mozilla/geckodriver
+Para la correcta ejecución del script1, es necesario contar con el navegador Firefox, además de tener el driver Geckodriver instalado en la carpeta "Bin" (linux) o "Scripts" (windows), las que se encuentran dentro del fichero "Venv" correspondiente al environment del proyecto. El driver puede descargarse desde https://github.com/mozilla/geckodriver.
+
+En el archivo LICENSE se encuentra información sobre la licencia del proyecto.
