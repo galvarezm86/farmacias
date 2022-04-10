@@ -1,10 +1,10 @@
 import pandas as pd
 import functions
 import warnings
+import glob
+import os
 
-warnings.filterwarnings("ignore")
-
-# Se obtiene la información de la página de SalcoBrand
+# Se obtiene la información de la página de SalcoBrand recorriendo los 12 sitemaps con enlaces de productos.
 
 sb1 = functions.crawl_sitemap_sb('https://salcobrand.cl/sitemap2.xml', time_sleep=3)
 sb2 = functions.crawl_sitemap_sb('https://salcobrand.cl/sitemap3.xml', time_sleep=3)
@@ -19,28 +19,49 @@ sb10 = functions.crawl_sitemap_sb('https://salcobrand.cl/sitemap11.xml', time_sl
 sb11 = functions.crawl_sitemap_sb('https://salcobrand.cl/sitemap12.xml', time_sleep=3)
 sb12 = functions.crawl_sitemap_sb('https://salcobrand.cl/sitemap13.xml', time_sleep=3)
 
-# Se condensa en un solo DataFrame
+# La información de cada dataframe es guardada en un csv.
 
-sb = pd.DataFrame(columns=['Farmacia', 'Producto', 'SKU', 'Normal', 'Oferta'])
-sb = sb.append(sb1, ignore_index=True)
-sb = sb.append(sb2, ignore_index=True)
-sb = sb.append(sb3, ignore_index=True)
-sb = sb.append(sb4, ignore_index=True)
-sb = sb.append(sb5, ignore_index=True)
-sb = sb.append(sb6, ignore_index=True)
-sb = sb.append(sb7, ignore_index=True)
-sb = sb.append(sb8, ignore_index=True)
-sb = sb.append(sb9, ignore_index=True)
-sb = sb.append(sb10, ignore_index=True)
-sb = sb.append(sb11, ignore_index=True)
-sb = sb.append(sb12, ignore_index=True)
+sb1.to_csv('SalcoBrand1.csv', encoding='utf-8')
+sb2.to_csv('SalcoBrand2.csv', encoding='utf-8')
+sb3.to_csv('SalcoBrand3.csv', encoding='utf-8')
+sb4.to_csv('SalcoBrand4.csv', encoding='utf-8')
+sb5.to_csv('SalcoBrand5.csv', encoding='utf-8')
+sb6.to_csv('SalcoBrand6.csv', encoding='utf-8')
+sb7.to_csv('SalcoBrand7.csv', encoding='utf-8')
+sb8.to_csv('SalcoBrand8.csv', encoding='utf-8')
+sb9.to_csv('SalcoBrand9.csv', encoding='utf-8')
+sb10.to_csv('SalcoBrand10.csv', encoding='utf-8')
+sb11.to_csv('SalcoBrand11.csv', encoding='utf-8')
+sb12.to_csv('SalcoBrand12.csv', encoding='utf-8')
 
-# Se exporta a un csv
+# Se consolidan todos los archivos csv en uno solo.
 
+files_joined = os.path.join('/home/gabriel/PycharmProjects/farmacias', 'SalcoBrand*.csv')
+list_files = glob.glob(files_joined)
+sb = pd.concat(map(pd.read_csv, list_files), ignore_index=True)
 sb.to_csv('SalcoBrand.csv', encoding='utf-8')
 
-# AQUÍ FALTA HACER LO MISMO PARA CRUZVERDE Y FARMACIAS AHUMADA
 
-sc1 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_0-product.xml')
-sc2 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_1-product.xml')
-sc3 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_2-product.xml')
+# Al momento de ejecutar las siguientes líneas de código, se muestran mensajes de advertencia cada vez que se carga una
+# página. Para evitar que se desplieguen, se ha decidido ignorar los mensajes de advertencia.
+
+warnings.filterwarnings("ignore")
+
+# Se obtiene la información de la página de Cruz Verde recorriendo los 3 sitemaps con enlaces de productos.
+
+cv1 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_0-product.xml')
+cv2 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_1-product.xml')
+cv3 = functions.crawl_sitemap_cv('https://www.cruzverde.cl/sitemap_2-product.xml')
+
+# La información de cada dataframe es guardada en un csv.
+
+cv1.to_csv('CruzVerde1.csv', encoding='utf-8')
+cv2.to_csv('CruzVerde2.csv', encoding='utf-8')
+cv3.to_csv('CruzVerde3.csv', encoding='utf-8')
+
+# Se consolidan todos los archivos csv en uno solo.
+
+files_joined = os.path.join('/home/gabriel/PycharmProjects/farmacias', 'CruzVerde*.csv')
+list_files = glob.glob(files_joined)
+cv = pd.concat(map(pd.read_csv, list_files), ignore_index=True)
+cv.to_csv('CruzVerde.csv', encoding='utf-8')

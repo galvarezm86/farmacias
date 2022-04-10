@@ -7,10 +7,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from selenium import webdriver
 
-
-
-# Se crea una función para descargar una página
-# Se usó parte del código propuesto en el libro, pero con librerías de python 3
+# Se crea una función para descargar una página utilizando la librería urllib.
+# Se usó parte del código propuesto en el libro, pero con librerías de python 3.
 
 
 def download(url, user_agent='wswp', num_retries=2):
@@ -26,19 +24,46 @@ def download(url, user_agent='wswp', num_retries=2):
             return download(url, user_agent, num_retries - 1)
     return html
 
+# Se crea una segunda función para descargar páginas basadas en javascript, utilizando la librería Selenium.
 
-# Se crean funciones que rescaten el nombre del producto, su sku, el precio normal y el precio en oferta
 
-# La siguiente es la función para rescatar la información desde las páginas de la farmacia Salcobrand
+def download2(url, num_retries=2):
+    # Se intenta abrir la url utilizando webdriver y el navegador Firefox.
+    try:
+        browser = webdriver.Firefox()
+        browser.get(url)
+        # Se da un tiempo para que la página cargue toda la información, de lo contrario no se podrá guardarn el html.
+        time.sleep(8)
+        # Se descarga el html parseado con BautifulSoup.
+        soup = BeautifulSoup(browser.page_source)
+        fixed_html = soup.prettify()
+        # Se cierra el navegador.
+        browser.close()
+    # Si no se logra abrir la url debido a un error de servidor, se espera 30 segundos y se vuelve a intentar.
+    # Este proceso se repite dos veces, si no se logra establecer conexión, se retorna "None".
+    except error as e:
+        print('Download error: ', e.reason)
+        fixed_html = None
+        if num_retries > 0 and hasattr(e, 'code') and 500 <= e.code < 600:
+            time.sleep(30)
+            return download2(url, num_retries - 1)
+    return fixed_html
+
+# Se crean funciones que rescaten el nombre del producto, su sku, el precio normal y el precio en oferta.
+# La siguiente es la función para rescatar la información desde una página de farmacias Salcobrand a partir del html
+# que retorna la función download.
 
 
 def scrap_sb(html):
     soup = BeautifulSoup(html, 'html.parser')
     fixed_html = soup.prettify()
+    # Se intenta buscar el tag donde se encuentra el nombre del producto.
     try:
         name = re.findall('<meta content="(.*?)" property="og:title"/>', fixed_html)[0]
+    # Si no se encuentra, se retorna "Null".
     except:
         name = "Null"
+    # Se intenta buscar el tag donde se encuentra el sku y los precios del producto.
     try:
         info = re.findall('var prices = (.*?);', fixed_html)[0]
         info = info.replace('null', '"Null"')
@@ -50,90 +75,97 @@ def scrap_sb(html):
         prices = eval(info[start_dict:end_dict])
         normal_price = prices['normal']
         offer_price = prices['oferta']
+    # Si no se encuentra, se retorna "Null".
     except:
         normal_price = "Null"
         offer_price = "Null"
         sku = "Null"
+    # Se guarda la fecha actual para incluirla en el registro.
     date = datetime.now().date()
-    print("Completado")
+    # La función retorna la fecha, el nombre de la farmacia, el nombre del producto, el sku y los precios.
     return [str(date), 'SalcoBrand', name, sku, normal_price, offer_price]
 
-
-# AQUI FALTAN LAS FUNCIONES PARA LAS PAGINAS DE FARMACIAS AHUMADA Y CRUZ VERDE
-
-# Se crean funciones que permitan navegar y descargar las páginas a través del sitemap.
-# Utilizando las funciones anteriores, se rescata la información Y se guarda en un dataframe
-
-# La siguiente es la función para la farmacia SalcoBrand
+# La siguiente es la función para rescatar la información desde una página de farmacias Salcobrand a partir del html
+# que retorna la función download2.
 
 
-def crawl_sitemap_sb(url, time_sleep=3):
-    df = pd.DataFrame(columns=['Fecha', 'Farmacia', 'Producto', 'SKU', 'Normal', 'Oferta'])
-    sitemap = download(url)
-    soup = BeautifulSoup(sitemap, 'html.parser')
-    sitemap_pretty = soup.prettify()
-    links = re.findall('<loc>(.*?)</loc>', sitemap_pretty, re.DOTALL)
-    for enlace in links[2:-1]:
-        start = re.search("h", enlace).start()
-        end = re.search(".\n", enlace).end()
-        link = enlace[start:end - 1]
-        html = download(link)
-        info = scrap_sb(html)
-        df.loc[len(df)] = info
-        time.sleep(time_sleep)
-    return df
-
-# AQUI FALTAN LAS FUNCIONES PARA LOS SITEMAPS DE LA FARMACIA AHUMADA Y CRUZVERDE
-
-def download2(url, num_retries = 2):
-    try:
-        browser = webdriver.Firefox()
-        browser.get(url)
-        time.sleep(8)
-        soup = BeautifulSoup(browser.page_source)
-        fixed_html = soup.prettify()
-        browser.close()
-    except error as e:
-        print('Download error: ', e.reason)
-        fixed_html = None
-        if num_retries > 0 and hasattr(e, 'code') and 500 <= e.code < 600:
-            time.sleep(30)
-            return download2(url, num_retries - 1)
-    return fixed_html
-
-
-def scrap_cv(html,link):
+def scrap_cv(html, link):
+    # Se intenta buscar el tag donde se encuentra el nombre del producto
     try:
         name = re.findall('<meta content="(.*?)" name="og::image:alt"/>', html)[0]
+    # Si no se encuentra, se retorna "Null".
     except:
         name = "Null"
+    # Se intenta buscar el tag donde se encuentran los precios del producto, admás, se rescata el sku desde la dirección
+    # del enlace.
     try:
         offer_price = re.findall('\$ (.*?)\n', html)[0]
         normal_price = re.findall('\$ (.*?) \(Normal\)', html)[0]
         start_sku = re.search('./\d(.*?).html', link).start() + 2
         end_sku = re.search('./\d(.*?).html', link).end() - 5
         sku = link[start_sku:end_sku]
+    # Si no se encuentra, se retorna "Null".
     except:
         normal_price = "Null"
         offer_price = "Null"
         sku = "Null"
+    # Se guarda la fecha actual para incluirla en el registro.
     date = datetime.now().date()
-    print("Completado")
+    # La función retorna la fecha, el nombre de la farmacia, el nombre del producto, el sku y los precios.
     return [str(date), 'Cruz Verde', name, sku, normal_price, offer_price]
 
+# Se crean funciones que permitan navegar y descargar las páginas a través del sitemap.
+# Utilizando las funciones anteriores, se rescata la información requerida y se guarda en un dataframe.
+
+# La siguiente es la función para la farmacia SalcoBrand.
 
 
-def crawl_sitemap_cv(url):
+def crawl_sitemap_sb(url, time_sleep=3):
+    # Se crea un dataframe para guardar la información.
     df = pd.DataFrame(columns=['Fecha', 'Farmacia', 'Producto', 'SKU', 'Normal', 'Oferta'])
+    # Se descarga el mapa del sitio y se parsea con Beautiful Soup.
     sitemap = download(url)
     soup = BeautifulSoup(sitemap, 'html.parser')
     sitemap_pretty = soup.prettify()
+    # Se encuentran todos los enlaces que contiene el mapa del sitio.
     links = re.findall('<loc>(.*?)</loc>', sitemap_pretty, re.DOTALL)
-    for enlace in links[0:1000]:
+    # Se recorren todos los enlaces de los productos, descargando la página y recopilando la información útil.
+    # Los primeros dos enlaces no corresponden a productos, por lo que se omiten del recorrido.
+    for enlace in links[2:-1]:
+        start = re.search("h", enlace).start()
+        end = re.search(".\n", enlace).end()
+        link = enlace[start:end - 1]
+        html = download(link)
+        info = scrap_sb(html)
+        # La información es guardada en el dataframe.
+        df.loc[len(df)] = info
+        # Se espera un tiempo prudente para no colapsar el servidor.
+        time.sleep(time_sleep)
+    # La función retorna el dataframe con la información de todos los productos.
+    return df
+
+# La siguiente es la función para la farmacia SalcoBrand.
+
+
+def crawl_sitemap_cv(url):
+    # Se crea un dataframe para guardar la información.
+    df = pd.DataFrame(columns=['Fecha', 'Farmacia', 'Producto', 'SKU', 'Normal', 'Oferta'])
+    # Se descarga el mapa del sitio y se parsea con Beautiful Soup.
+    sitemap = download(url)
+    soup = BeautifulSoup(sitemap, 'html.parser')
+    sitemap_pretty = soup.prettify()
+    # Se encuentran todos los enlaces que contiene el mapa del sitio.
+    links = re.findall('<loc>(.*?)</loc>', sitemap_pretty, re.DOTALL)
+    # Se recorren todos los enlaces de los productos, descargando la página y recopilando la información útil.
+    for enlace in links:
         start = re.search("h", enlace).start()
         end = re.search(".\n", enlace).end()
         link = enlace[start:end - 1]
         html = download2(link)
-        info = scrap_cv(html,link)
+        info = scrap_cv(html, link)
+        # La información es guardada en el dataframe.
         df.loc[len(df)] = info
+        # En este caso no se espera un tiempo entre peticiones, ya que la función download2 ya considera un tiempo de
+        # espera para que las páginas se carguen.
+    # La función retorna el dataframe con la información de todos los productos.
     return df
