@@ -54,6 +54,7 @@ def download2(url, num_retries=2):
 # que retorna la función download.
 
 
+#Funciones para Salco Brand
 def scrap_sb(html):
     soup = BeautifulSoup(html, 'html.parser')
     fixed_html = soup.prettify()
@@ -88,7 +89,7 @@ def scrap_sb(html):
 # La siguiente es la función para rescatar la información desde una página de farmacias Salcobrand a partir del html
 # que retorna la función download2.
 
-
+#Funciones para Cruz Verde
 def scrap_cv(html, link):
     # Se intenta buscar el tag donde se encuentra el nombre del producto
     try:
@@ -113,6 +114,32 @@ def scrap_cv(html, link):
     date = datetime.now().date()
     # La función retorna la fecha, el nombre de la farmacia, el nombre del producto, el sku y los precios.
     return [str(date), 'Cruz Verde', name, sku, normal_price, offer_price]
+
+
+#Funciones para Ahumada
+def scrap_ah(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    fixed_html = soup.prettify()
+    info = re.findall('var dlObjects = (.*?);', fixed_html)[0]
+    info = info.replace('null', '"Null"')
+    try:
+        name = re.findall('"name":"(.*?)",', info)[0]
+    except:
+        name = 'N/A'
+    try:
+        sku = re.findall('"id":"(.*?)",', info)[0]
+    except:
+        sku = 'N/A'
+    try:
+        normal_price = re.findall('"price":"(.*?)",', info)[0]
+    except:
+        normal_price = 'N/A'
+    try:
+        offer_price = re.findall('"price":"(.*?)",', info)[0]
+    except:
+        offer_price = 'N/A'
+    return ['Ahumada', name, sku, normal_price, offer_price]
+
 
 # Se crean funciones que permitan navegar y descargar las páginas a través del sitemap.
 # Utilizando las funciones anteriores, se rescata la información requerida y se guarda en un dataframe.
@@ -168,4 +195,28 @@ def crawl_sitemap_cv(url):
         # En este caso no se espera un tiempo entre peticiones, ya que la función download2 ya considera un tiempo de
         # espera para que las páginas se carguen.
     # La función retorna el dataframe con la información de todos los productos.
+    return df
+
+#Funciones para Ahumada
+def crawl_sitemap_ah(url, time_sleep=3):
+    df = pd.DataFrame(columns=['Farmacia', 'Producto', 'SKU', 'Normal', 'Oferta'])
+    sitemap = download(url)
+    soup = BeautifulSoup(sitemap, 'html.parser')
+    sitemap_pretty = soup.prettify()
+    links = re.findall('<loc>(.*?)</loc>', sitemap_pretty, re.DOTALL)
+    #no estamos considerando los productos descontinuados, estos tienen en el nonbre de la url, el texto "deprecated".
+    pattern = 'deprecated'
+    for enlace in links:
+        link = enlace[4:-2]
+        if len(link) <= 38:
+            continue
+        if re.search(pattern, link):
+            continue
+        try:
+            html = download(link)
+        except:
+            continue
+        info = scrap_ah(html)
+        df.loc[len(df)] = info
+        time.sleep(time_sleep)
     return df
