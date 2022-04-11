@@ -26,7 +26,7 @@ Carpeta Data: Carpeta con los archivos csv obtenidos tras el proceso de web scra
 	SalcoBrand.csv: Archivo con 13189 registros correspondientes a los productos ofrecidos por Farmacias SalcoBrand, con su respectivo precio normal y de oferta.
 
 
-Además de encontrarse en la carpeta Data, los 3 archivos descritos anteriormente se encuentran en un repositorio de Zenodo, cuyo DOI es: 10.5281/zenodo.6441486
+Además de encontrarse en la carpeta Data, los 3 archivos descritos anteriormente se encuentran en un repositorio de Zenodo, cuyo DOI es: 10.5281/zenodo.6441879
 
 
 Para la correcta ejecución del script1, es necesario contar con el navegador Firefox, además de tener el driver Geckodriver instalado en la carpeta "Bin" (linux) o "Scripts" (windows), las que se encuentran dentro del fichero "Venv" correspondiente al environment del proyecto. El driver puede descargarse desde https://github.com/mozilla/geckodriver.
